@@ -24,6 +24,7 @@ contract ConfidentialPayroll {
     event EmployeeAdded(address indexed wallet);
     event SalarySet(address indexed wallet, uint256 encryptedSalary);
     event PayrollExecuted(address indexed wallet);
+    event TokensWithdrawn(address indexed employer, uint256 amount);
 
     modifier onlyEmployer() {
         require(msg.sender == employer, "Not employer");
@@ -48,5 +49,14 @@ contract ConfidentialPayroll {
         token.transfer(wallet, decryptedSalary);
 
         emit PayrollExecuted(wallet);
+    }
+
+    /**
+     * @dev Allows the employer to withdraw tokens from the payroll contract (e.g. for reclaiming unused funds).
+     */
+    function withdrawTokens(uint256 amount) external onlyEmployer {
+        require(token.balanceOf(address(this)) >= amount, "Insufficient contract balance");
+        token.transfer(employer, amount);
+        emit TokensWithdrawn(employer, amount);
     }
 }
